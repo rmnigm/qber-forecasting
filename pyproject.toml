@@ -9,7 +9,6 @@ packages = [{include = "qber_forecasting"}]
 [tool.poetry.dependencies]
 python = "3.10.6"
 torch = "^2.0.0"
-etna = {extras = ["catboost"], version = "^1.15.1"}
 scikit-learn = ">=0.24, <2"
 pandas = "^1"
 catboost = ">=0.21"
