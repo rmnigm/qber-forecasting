@@ -43,7 +43,8 @@ def setup_dataset(dataset,
                   train_size: float = 0.8,
                   scaler=None,
                   batch_size: int = 64,
-                  shuffle: bool = False):
+                  shuffle: bool = False,
+                  device: str = 'cpu'):
     train_size = int(len(dataset) * train_size)
     test_size = len(dataset) - train_size
     data_train, data_test = dataset[0:train_size, :], dataset[train_size:len(dataset), :]
@@ -56,13 +57,15 @@ def setup_dataset(dataset,
 
     train_set = TorchTSDataset(data_train,
                                target_index=0,
-                               look_back=look_back)
+                               look_back=look_back,
+                               device=device)
     train_loader = DataLoader(train_set,
                               batch_size=batch_size,
                               shuffle=shuffle)
     test_set = TorchTSDataset(data_test,
                               target_index=0,
-                              look_back=look_back)
+                              look_back=look_back,
+                               device=device)
     test_loader = DataLoader(test_set,
                              batch_size=batch_size,
                              shuffle=shuffle)
