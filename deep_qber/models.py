@@ -3,20 +3,6 @@ import torch
 import torch.nn as nn
 
 
-class ExpSmoothing:
-    def __init__(self, start_value, window_size):
-        assert window_size >= 0
-        self.val = start_value
-        self.alpha = 2. / (window_size + 1)
-        self.window_size = window_size
-
-    def update(self, val):
-        self.val = self.alpha * val + (1. - self.alpha) * self.val
-
-    def get(self):
-        return self.val
-
-
 class Extractor(nn.Module):
     def __init__(self, look_back, output_size, hidden_size):
         super().__init__() 
@@ -97,3 +83,39 @@ class ExtractorLSTM(nn.Module):
         current_features = self.dense(x_current)[:, -1, :]
         features = torch.cat((past_features, current_features), 1)
         return self.regressor(features)
+
+
+class ModuleTS(pl.LightningModule):
+    def __init__(self, model, loss, lr=1e-5):
+        super().__init__()
+        self.model = model
+        self.loss = loss
+        self.lr = lr
+        self.loss_multiplier = 1e4
+        self.save_hyperparameters(ignore=['model'])
+
+    def forward(self, x):
+        return self.model(x)
+
+    def configure_optimizers(self):
+        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
+        return optimizer
+
+    def training_step(self, train_batch, batch_idx):
+        data, target = train_batch
+        predictions = self.forward(data)
+        loss = self.loss_multiplier * self.loss(predictions, target)
+        self.log("Train Loss", loss, prog_bar=True)
+        metrics = self.model.get_metrics(predictions, target)
+        self.log("Train MSE", metrics["MSE"], prog_bar=True)
+        self.log("Train MAPE", metrics["MAPE"], prog_bar=True)
+        return loss
+
+    def validation_step(self, val_batch, batch_idx):
+        data, target = val_batch
+        preds = self.forward(data)
+        loss = self.loss_multiplier * self.loss(preds, target)
+        metrics = self.model.get_metrics(preds, target)
+        self.log("Validation Loss", loss, prog_bar=True)
+        self.log("Validation MSE", metrics["MSE"], prog_bar=True)
+        self.log("Validation MAPE", metrics["MAPE"], prog_bar=True)
