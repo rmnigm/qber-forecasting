@@ -1,4 +1,6 @@
 import random
+import statistics
+from collections import deque
 
 import torch
 import numpy as np
@@ -14,6 +16,43 @@ def seed_everything(seed: int) -> None:
     torch.manual_seed(seed)
     torch.cuda.manual_seed(seed)
     torch.backends.cudnn.deterministic = True
+
+
+class OutlierDetector:
+    def __init__(self, mode='median', window_size=10, alpha=3):
+        self.mode = 'median'
+        self.window_size = window_size
+        self.alpha = alpha
+
+    def fit(self, ts):
+        anomalies = []
+        window = deque(ts[:self.window_size])
+        for i in tqdm(range(len(ts[self.window_size:]))):
+            item = ts[i]
+            med = statistics.median(window)
+            std = statistics.stdev(window)
+            diff = np.abs(item - med)
+            if diff > std * self.alpha:
+                anomalies.append(i)
+            else:
+                window.append(item)
+                window.popleft()
+        return anomalies
+    
+    def fit_transform(self, ts):
+        new_ts = list(ts[:self.window_size].copy())
+        window = deque(ts[:self.window_size])
+        for item in tqdm(ts[self.window_size:]):
+            med = statistics.median(window)
+            std = statistics.stdev(window)
+            diff = np.abs(item - med)
+            if diff > std * self.alpha:
+                new_ts.append(med)
+            else:
+                new_ts.append(item)
+                window.append(item)
+                window.popleft()
+        return new_ts
 
 
 class TorchTSDataset(Dataset):
