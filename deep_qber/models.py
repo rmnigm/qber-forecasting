@@ -87,6 +87,22 @@ class ExtractorLSTM(nn.Module):
         return self.regressor(features)
 
 
+class ModelInterfaceTS(nn.Module):
+    def __init__(self, model):
+        super().__init__()
+        self.model = model
+
+    def forward(self, x):
+        return self.model(x)
+    
+    @staticmethod
+    def get_metrics(predictions, labels):
+        return {
+            "MSE": mean_squared_error(predictions.float(), labels.float()),
+            "MAPE": mean_absolute_percentage_error(predictions.float(), labels.float())
+        }
+
+
 class ModuleTS(pl.LightningModule):
     def __init__(self, model, loss, lr=1e-5):
         super().__init__()
