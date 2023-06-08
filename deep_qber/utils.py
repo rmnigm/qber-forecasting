@@ -24,18 +24,22 @@ class TorchTSDataset(Dataset):
                  device='cpu'):
         length = dataset.shape[0] - look_back - 1
         width = dataset.shape[1]
+        mask = np.array([i != target_index for i in range(width)])
+        x_current = np.empty((length, 1, width - 1))
         x, y = np.empty((length, look_back, width)), np.empty((length, 1))
         for i in range(length):
             x[i] = dataset[i:(i + look_back), :]
+            x_current[i] = dataset[i + look_back, mask]
             y[i] = dataset[i + look_back, target_index]
         self.X = torch.tensor(x).float().to(device)
         self.y = torch.tensor(y).float().to(device)
+        self.X_current = torch.tensor(x_current).float().to(device)
     
     def __len__(self):
         return len(self.y)
     
     def __getitem__(self, idx):
-        return self.X[idx], self.y[idx]
+        return (self.X[idx], self.X_current[idx]), self.y[idx]
 
 
 def setup_dataset(dataset,
@@ -70,55 +74,3 @@ def setup_dataset(dataset,
                              batch_size=batch_size,
                              shuffle=shuffle)
     return train_loader, test_loader
-
-
-class ModelInterfaceTS(torch.nn.Module):
-    def __init__(self, model):
-        super().__init__()
-        self.model = model
-
-    def forward(self, x):
-        return self.model(x)
-    
-    @staticmethod
-    def get_metrics(predictions, labels):
-        return {
-            "MSE": mean_squared_error(predictions.float(), labels.float()),
-            "MAPE": mean_absolute_percentage_error(predictions.float(), labels.float())
-        }
-
-
-class ModuleTS(pl.LightningModule):
-    def __init__(self, model, loss, lr=1e-5):
-        super().__init__()
-        self.model = model
-        self.loss = loss
-        self.lr = lr
-        self.loss_multiplier = 1e4
-        self.save_hyperparameters(ignore=['model'])
-
-    def forward(self, x):
-        return self.model(x)
-
-    def configure_optimizers(self):
-        optimizer = torch.optim.Adam(self.parameters(), lr=self.lr)
-        return optimizer
-
-    def training_step(self, train_batch, batch_idx):
-        data, target = train_batch
-        predictions = self.forward(data)
-        loss = self.loss_multiplier * self.loss(predictions, target)
-        self.log("Train Loss", loss, prog_bar=True)
-        metrics = self.model.get_metrics(predictions, target)
-        self.log("Train MSE", metrics["MSE"], prog_bar=True)
-        self.log("Train MAPE", metrics["MAPE"], prog_bar=True)
-        return loss
-
-    def validation_step(self, val_batch, batch_idx):
-        images, target = val_batch
-        preds = self.forward(images)
-        loss = self.loss_multiplier * self.loss(preds, target)
-        metrics = self.model.get_metrics(preds, target)
-        self.log("Validation Loss", loss, prog_bar=True)
-        self.log("Validation MSE", metrics["MSE"], prog_bar=True)
-        self.log("Validation MAPE", metrics["MAPE"], prog_bar=True)
