@@ -1,6 +1,6 @@
 import numpy as np
 import torch
-import torch.nn
+import torch.nn as nn
 
 
 class ExpSmoothing:
