@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 import pytorch_lightning as pl
-from torch.utils.data import Dataset, DataLoader
+from torchmetrics.functional import mean_squared_error, mean_absolute_percentage_error
 
 
 class Extractor(nn.Module):

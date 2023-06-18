@@ -5,8 +5,8 @@ from collections import deque
 import torch
 import numpy as np
 import pytorch_lightning as pl
+from tqdm import tqdm
 from torch.utils.data import Dataset, DataLoader
-from torchmetrics.functional import mean_squared_error, mean_absolute_percentage_error
 
 
 def seed_everything(seed: int) -> None:
