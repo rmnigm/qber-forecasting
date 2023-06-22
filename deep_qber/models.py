@@ -1,4 +1,5 @@
 import numpy as np
+import pandas as pd
 import torch
 import torch.nn as nn
 import pytorch_lightning as pl
@@ -87,10 +88,29 @@ class ExtractorLSTM(nn.Module):
         return self.regressor(features)
 
 
+def setup_metric(path):
+    dataframe = pd.read_csv(path)
+    x = dataframe['delta'].values
+    y = dataframe['f_ec'].values
+    X = np.stack([x ** k for k in range(5)]).T
+    w, *_ = np.linalg.lstsq(X, y, rcond=None)
+    
+    def correction_effectivenes(predictions, labels):
+        errors = mean_squared_error(predictions, labels)
+        errors = np.array(errors)
+        batch_size = len(errors)
+        x_repeated = np.repeat(errors[:, None], 5, axis=1)
+        powers = np.repeat(np.array(range(5))[None, :], batch_size, axis=0)
+        return np.power(x_repeated, powers).dot(w)
+
+    return correction_effectivenes
+
+
 class ModelInterfaceTS(nn.Module):
-    def __init__(self, model):
+    def __init__(self, model, metric_filepath):
         super().__init__()
         self.model = model
+        self.metric = setup_metric(metric_filepath)
 
     def forward(self, x):
         return self.model(x)
@@ -99,7 +119,8 @@ class ModelInterfaceTS(nn.Module):
     def get_metrics(predictions, labels):
         return {
             "MSE": mean_squared_error(predictions.float(), labels.float()),
-            "MAPE": mean_absolute_percentage_error(predictions.float(), labels.float())
+            "MAPE": mean_absolute_percentage_error(predictions.float(), labels.float()),
+            "F_EC": self.metric(predictions.float(), labels.float()),
         }
 
 
@@ -127,6 +148,7 @@ class ModuleTS(pl.LightningModule):
         metrics = self.model.get_metrics(predictions, target)
         self.log("Train MSE", metrics["MSE"], prog_bar=True)
         self.log("Train MAPE", metrics["MAPE"], prog_bar=True)
+        self.log("Train F_EC", metrics["F_EC"], prog_bar=True)
         return loss
 
     def validation_step(self, val_batch, batch_idx):
@@ -137,3 +159,4 @@ class ModuleTS(pl.LightningModule):
         self.log("Validation Loss", loss, prog_bar=True)
         self.log("Validation MSE", metrics["MSE"], prog_bar=True)
         self.log("Validation MAPE", metrics["MAPE"], prog_bar=True)
+        self.log("Validation F_EC", metrics["F_EC"], prog_bar=True)
