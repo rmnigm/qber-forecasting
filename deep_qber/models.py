@@ -115,8 +115,7 @@ class ModelInterfaceTS(nn.Module):
     def forward(self, x):
         return self.model(x)
     
-    @staticmethod
-    def get_metrics(predictions, labels):
+    def get_metrics(self, predictions, labels):
         return {
             "MSE": mean_squared_error(predictions.float(), labels.float()),
             "MAPE": mean_absolute_percentage_error(predictions.float(), labels.float()),
