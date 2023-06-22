@@ -1,2 +1,2 @@
-from .models import ExpSmoothing
-from .utils import TorchTSDataset, setup_dataset, ModuleTS, ModelInterfaceTS, seed_everything
+from .models import ModelInterfaceTS, ModuleTS
+from .utils import TorchTSDataset, setup_dataset, seed_everything
