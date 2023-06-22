@@ -97,7 +97,7 @@ def setup_metric(path):
     
     def correction_effectivenes(predictions, labels):
         error = mean_squared_error(predictions, labels)
-        x = np.power(error.cpu().numpy(), range(5))
+        x = np.power(error.cpu().detach().numpy(), range(5))
         return x @ w
 
     return correction_effectivenes
