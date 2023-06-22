@@ -96,12 +96,9 @@ def setup_metric(path):
     w, *_ = np.linalg.lstsq(X, y, rcond=None)
     
     def correction_effectivenes(predictions, labels):
-        errors = mean_squared_error(predictions, labels)
-        errors = np.array(errors)
-        batch_size = len(errors)
-        x_repeated = np.repeat(errors[:, None], 5, axis=1)
-        powers = np.repeat(np.array(range(5))[None, :], batch_size, axis=0)
-        return np.power(x_repeated, powers).dot(w)
+        error = mean_squared_error(predictions, labels)
+        x = np.power(error, range(5))
+        return x.dot(w)
 
     return correction_effectivenes
 
