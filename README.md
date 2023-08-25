@@ -13,10 +13,25 @@ Alice and Bob exchange quantum bit sequences and sometimes they make mistakes - 
 Here we introduce **QBER a.k.a. Quantum Bit Error Rate:**
 
 $$
-\text{QBER} = \frac{\text{number of incorrect bits}}{\text{number of bits}}
+\text{QBER} = \frac{\text{number of incorrect bits}}{\text{number of received bits}}
 $$
 
-For procedure of information reconciliation we need to know QBER value before the procedure to make the IR more efficient and fast - so we forecast it, using previous data about QBER of normal states and decoy states, and also some additional parameters of the states.
+For procedure of information reconciliation we need to know QBER value before the procedure to make the IR more efficient and fast. Also, there is additional data - time series of the **channel** **intensity**:
 
-**We have a time series of seven variables and we need to forecast target TS value using previous data of target TS, current values of additional TS and previous values of the other TS.**
+$$
+Q = \frac{\text{number of received bits}}{\text{number of sent bits}}
+$$
+
+These two time series are available for all three transmitter states - one primary and two decoy.
+
+**Main state**
+$\mu$ - main secure state, which is used for real messages. 
+We do not know QBER before the correction procedure.
+
+**Decoy states**
+$\nu_{1}$ and $\nu_2$ - decoy states, which are used for calibration of the transmitters.
+QBER for these states is known ahead of time and can be used in forecasting.
+
+### Shorter than ever
+We have a time series of seven variables and we need to forecast target TS value using previous data of target TS, current values of additional TS and previous values of the other TS.
 
