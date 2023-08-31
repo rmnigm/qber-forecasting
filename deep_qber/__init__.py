@@ -1,2 +1,6 @@
-from .models import ModelInterfaceTS, ModuleTS
-from .utils import TorchTSDataset, setup_dataset, seed_everything
+import utils
+import model
+import dataset
+
+from model import ModuleTS, ModelInterfaceTS
+from dataset import ClassicModelDataset, TorchDataset
