@@ -48,21 +48,21 @@ class ClassicModelDataset(ABCDataset):
         if self.window_size >= 20:
             self.window_options.append(5)
         
-        self.set_schema()
         self.train = None
         self.test = None
-        self.schema = []
+        self.schema = self.set_schema()
     
     def set_schema(self):
-        self.schema = []
+        schema = []
         cols = self.dataframe.columns
         for window in self.window_options:
-            self.schema += [col + f'_w{window}_mean' for col in cols]
-            self.schema += [col + f'_w{window}_std' for col in cols]
-            self.schema += [col + f'_w{window}_minmax_delta' for col in cols]
-            self.schema += [col + f'_w{window}_ema' for col in cols]
-        self.schema += [f'{self.window_size - 1 - i}_lag_{self.target_column}' for i in range(self.window_size)]
-        self.schema += list(cols)
+            schema += [col + f'_w{window}_mean' for col in cols]
+            schema += [col + f'_w{window}_std' for col in cols]
+            schema += [col + f'_w{window}_minmax_delta' for col in cols]
+            schema += [col + f'_w{window}_ema' for col in cols]
+        schema += [f'{self.window_size - 1 - i}_lag_{self.target_column}' for i in range(self.window_size)]
+        schema += list(cols)
+        return schema
     
     def transform(self, subset):
         features = []
