@@ -125,7 +125,6 @@ class ModuleTS(pl.LightningModule):
         metrics = self.model.get_metrics(predictions, target)
         self.log("Train MSE", metrics["MSE"], prog_bar=True)
         self.log("Train MAPE", metrics["MAPE"], prog_bar=True)
-        self.log("Train F_EC", metrics["F_EC"], prog_bar=True)
         return loss
 
     def validation_step(self, val_batch, batch_idx):
@@ -136,4 +135,3 @@ class ModuleTS(pl.LightningModule):
         self.log("Validation Loss", loss, prog_bar=True)
         self.log("Validation MSE", metrics["MSE"], prog_bar=True)
         self.log("Validation MAPE", metrics["MAPE"], prog_bar=True)
-        self.log("Validation F_EC", metrics["F_EC"], prog_bar=True)
