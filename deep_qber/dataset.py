@@ -144,8 +144,8 @@ class TorchDataset(torch.utils.data.Dataset):
     def __init__(self, data):
         self.indices, self.X, self.Y = [], [], []
         for point in data:
-            i, datarow = point
-            x_lag, x_latest, y = datarow
+            i, data = point
+            x_lag, x_latest, y = data
             self.indices.append(i)
             self.X.append((x_lag, x_latest))
             self.Y.append(y)
@@ -155,3 +155,76 @@ class TorchDataset(torch.utils.data.Dataset):
     
     def __getitem__(self, idx):
         return self.X[idx], self.Y[idx]
+
+
+class TorchDatasetInterface(BaseDataset):
+    def __init__(self,
+                 dataframe,
+                 target_column,
+                 anomaly_column,
+                 shuffle=True,
+                 train_size=0.75,
+                 batch_size=64,
+                 window_size=10,
+                 dtype=torch.float32,
+                 ):
+        super().__init__(dataframe=dataframe,
+                         target_column=target_column,
+                         anomaly_column=anomaly_column,
+                         window_size=window_size,
+                         train_size=train_size)
+        self.dtype = dtype
+        self.shuffle = shuffle
+        self.batch_size = batch_size
+        self.train = None
+        self.test = None
+    
+    def transform(self, subset):
+        lag, latest = subset.iloc[:-1], subset.iloc[-1]
+        y = torch.tensor(
+            latest[self.target_column],
+            dtype=self.dtype
+        )
+        x_latest = torch.tensor(
+            latest.drop(columns=self.target_column).values,
+            dtype=self.dtype
+        )
+        x_lag = torch.tensor(
+            lag.values,
+            dtype=self.dtype
+        )
+        return x_lag, x_latest, y
+    
+    def assemble(self, dataset):
+        self.dataset = dataset
+        torch.save(self.dataset, 'qber_dataset.pt')
+    
+    def load(self):
+        self.dataset = torch.load('qber_dataset.pt')
+    
+    def get_dataloaders(self, anomaly_split=True):
+        loaders = []
+        normal, anomaly = [], []
+        for point in self.dataset:
+            i, data, anomaly_label = point
+            if anomaly_split and anomaly_label:
+                anomaly.append((i, data))
+            else:
+                normal.append((i, data))
+        subsets = [normal]
+        if anomaly:
+            subsets.append(anomaly)
+        for subset in subsets:
+            train, test = self.split(subset, train_size=self.train_size)
+            train_dataset = TorchDataset(train)
+            train_loader = torch.utils.data.DataLoader(train_dataset,
+                                                       shuffle=self.shuffle,
+                                                       batch_size=self.batch_size)
+            
+            test_dataset = TorchDataset(test)
+            test_loader = torch.utils.data.DataLoader(test_dataset,
+                                                      shuffle=self.shuffle,
+                                                      batch_size=self.batch_size)
+            loaders.append((train_loader, test_loader))
+        
+        return loaders
