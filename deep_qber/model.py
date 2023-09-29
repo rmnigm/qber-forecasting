@@ -1,7 +1,8 @@
 import torch
 import torch.nn as nn
 import pytorch_lightning as pl
-from torchmetrics.functional import mean_squared_error, mean_absolute_percentage_error, 
+import torchmetrics
+from torchmetrics import R2Score, MeanSquaredError, MeanAbsolutePercentageError
 
 
 class Extractor(nn.Module):
