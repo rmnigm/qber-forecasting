@@ -182,7 +182,7 @@ class TorchDatasetInterface(BaseDataset):
     def transform(self, subset):
         lag, latest = subset.iloc[:-1], subset.iloc[-1]
         y = torch.tensor(
-            latest[self.target_column],
+            [latest[self.target_column]],
             dtype=self.dtype
         )
         x_latest = torch.tensor(
