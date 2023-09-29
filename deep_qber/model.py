@@ -90,18 +90,21 @@ class ExtractorLSTM(nn.Module):
 
 
 class ModelInterfaceTS(nn.Module):
-    def __init__(self, model):
+    def __init__(self, model, device):
         super().__init__()
         self.model = model
+        self.metrics = {
+            "MSE": torchmetrics.MeanSquaredError().to(device),
+            "R2Score": torchmetrics.R2Score().to(device),
+            "MAPE": torchmetrics.MeanAbsolutePercentageError().to(device),
+        }
 
     def forward(self, x):
         return self.model(x)
     
     def get_metrics(self, predictions, labels):
-        return {
-            "MSE": mean_squared_error(predictions.float(), labels.float()),
-            "MAPE": mean_absolute_percentage_error(predictions.float(), labels.float()),
-        }
+        preds_f, labels_f = predictions.float(), labels.float()
+        return {k: v(preds_f, labels_f) for k, v in self.metrics.items()}
 
 
 class ModuleTS(pl.LightningModule):
@@ -126,8 +129,8 @@ class ModuleTS(pl.LightningModule):
         loss = self.loss_multiplier * self.loss(predictions, target)
         self.log("Train Loss", loss, prog_bar=True)
         metrics = self.model.get_metrics(predictions, target)
-        self.log("Train MSE", metrics["MSE"], prog_bar=True)
-        self.log("Train MAPE", metrics["MAPE"], prog_bar=True)
+        for k, v in metrics.items():
+            self.log(f"Train {k}", v, prog_bar=True)
         return loss
 
     def validation_step(self, val_batch, batch_idx):
@@ -136,5 +139,5 @@ class ModuleTS(pl.LightningModule):
         loss = self.loss_multiplier * self.loss(preds, target)
         metrics = self.model.get_metrics(preds, target)
         self.log("Validation Loss", loss, prog_bar=True)
-        self.log("Validation MSE", metrics["MSE"], prog_bar=True)
-        self.log("Validation MAPE", metrics["MAPE"], prog_bar=True)
+        for k, v in metrics.items():
+            self.log(f"Validation {k}", v, prog_bar=True)
