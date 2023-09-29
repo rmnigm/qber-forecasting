@@ -1,17 +1,18 @@
 import torch
 import torch.nn as nn
 import pytorch_lightning as pl
-from torchmetrics.functional import mean_squared_error, mean_absolute_percentage_error
+from torchmetrics.functional import mean_squared_error, mean_absolute_percentage_error, 
 
 
 class Extractor(nn.Module):
-    def __init__(self, look_back, output_size, hidden_size):
+    def __init__(self, look_back, output_size, hidden_size, input_size):
         super().__init__() 
-        self.input_size = look_back
+        self.look_back = look_back
+        self.input_size = input_size
         self.output_size = output_size
         self.hidden_size = hidden_size
         self.autoregressive_dense = nn.Sequential(
-            nn.Linear(self.input_size, self.hidden_size),
+            nn.Linear(self.look_back, self.hidden_size),
             nn.LeakyReLU(),
             nn.Linear(self.hidden_size, self.hidden_size),
             nn.LeakyReLU(),
@@ -29,20 +30,21 @@ class Extractor(nn.Module):
 
 
 class ExtractorExod(nn.Module):
-    def __init__(self, look_back, output_size, hidden_size):
+    def __init__(self, look_back, output_size, hidden_size, input_size):
         super().__init__() 
-        self.input_size = look_back
+        self.look_back = look_back
+        self.input_size = input_size
         self.output_size = output_size
         self.hidden_size = hidden_size
         self.autoregressive_dense = nn.Sequential(
-            nn.Linear(self.input_size, self.hidden_size),
+            nn.Linear(self.look_back, self.hidden_size),
             nn.LeakyReLU(),
             nn.Linear(self.hidden_size, self.hidden_size),
             nn.LeakyReLU(),
             nn.Linear(self.hidden_size, self.hidden_size),
         )
         self.dense_exod = nn.Sequential(
-            nn.Linear(6, self.hidden_size),
+            nn.Linear(self.input_size - 1, self.hidden_size),
             nn.LeakyReLU(),
             nn.Linear(self.hidden_size, self.hidden_size),
             nn.LeakyReLU(),
@@ -56,32 +58,33 @@ class ExtractorExod(nn.Module):
     def forward(self, data):
         x, x_current = data
         autoregressive_features = self.autoregressive_dense(x[:, :, 0])
-        exod_features = self.dense_exod(x_current)[:, -1, :]
+        exod_features = self.dense_exod(x_current)
         return self.classifier(torch.cat((autoregressive_features, exod_features), 1))
     
     
 class ExtractorLSTM(nn.Module):
-    def __init__(self, input_size, output_size, hid_size=128):
+    def __init__(self, input_size, output_size, look_back, hidden_size=128):
         super().__init__() 
+        self.look_back = look_back
         self.input_size = input_size
         self.output_size = output_size
-        self.hid_size = hid_size
-        self.lstm = nn.LSTM(input_size,
-                            hid_size,
+        self.hidden_size = hidden_size
+        self.lstm = nn.LSTM(self.input_size,
+                            self.hidden_size,
                             batch_first=True
                             )
         self.dense = nn.Sequential(
-            nn.Linear(input_size - 1, hid_size),
+            nn.Linear(self.input_size - 1, self.hidden_size),
             nn.LeakyReLU(),
-            nn.Linear(hid_size, hid_size),
+            nn.Linear(self.hidden_size, self.hidden_size),
         )
-        self.regressor = nn.Linear(2 * hid_size, output_size)
+        self.regressor = nn.Linear(2 * self.hidden_size, output_size)
         
     def forward(self, data):
         x, x_current = data
         x, _ = self.lstm(x)
         past_features = x[:, -1, :]
-        current_features = self.dense(x_current)[:, -1, :]
+        current_features = self.dense(x_current)
         features = torch.cat((past_features, current_features), 1)
         return self.regressor(features)
 
