@@ -141,7 +141,7 @@ class ClassicModelDataset(BaseDataset):
 
 
 class TorchDataset(torch.utils.data.Dataset):
-    def __init__(self, data):
+    def __init__(self, data, device='cpu'):
         self.indices, self.X, self.Y = [], [], []
         for point in data:
             i, data = point
@@ -154,7 +154,7 @@ class TorchDataset(torch.utils.data.Dataset):
         return len(self.X)
     
     def __getitem__(self, idx):
-        return self.X[idx], self.Y[idx]
+        return tuple(x.to(device) for x in self.X[idx]), self.Y[idx].to(device)
 
 
 class TorchDatasetInterface(BaseDataset):
@@ -202,7 +202,7 @@ class TorchDatasetInterface(BaseDataset):
     def load(self):
         self.dataset = torch.load('qber_dataset.pt')
     
-    def get_dataloaders(self, anomaly_split=True):
+    def get_dataloaders(self, device='cpu', anomaly_split=True):
         loaders = []
         normal, anomaly = [], []
         for point in self.dataset:
@@ -216,12 +216,12 @@ class TorchDatasetInterface(BaseDataset):
             subsets.append(anomaly)
         for subset in subsets:
             train, test = self.split(subset, train_size=self.train_size)
-            train_dataset = TorchDataset(train)
+            train_dataset = TorchDataset(train, device=device)
             train_loader = torch.utils.data.DataLoader(train_dataset,
                                                        shuffle=self.shuffle,
                                                        batch_size=self.batch_size)
             
-            test_dataset = TorchDataset(test)
+            test_dataset = TorchDataset(test, device=device)
             test_loader = torch.utils.data.DataLoader(test_dataset,
                                                       shuffle=self.shuffle,
                                                       batch_size=self.batch_size)
