@@ -1,2 +1,7 @@
+from . import model
 from .model import ModuleTS, ModelInterfaceTS
-from .dataset import ClassicModelDataset, TorchDataset
+
+from . import dataset
+from .dataset import ClassicModelDataset, TorchDatasetInterface
+
+from . import utils
