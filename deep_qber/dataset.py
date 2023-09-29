@@ -186,7 +186,7 @@ class TorchDatasetInterface(BaseDataset):
             dtype=self.dtype
         )
         x_latest = torch.tensor(
-            latest.drop(columns=self.target_column).values,
+            latest.drop(self.target_column).values,
             dtype=self.dtype
         )
         x_lag = torch.tensor(
