@@ -23,7 +23,7 @@ jupyterlab = "^3.6.2"
 wandb = "^0.14.2"
 pytorch-lightning = "^2.0.1.post0"
 torchmetrics = "^0.11.4"
-deep-qber = {path = "package"}
+deep-qber = {path = "deep_qber"}
 
 [build-system]
 requires = ["poetry-core"]

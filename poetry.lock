@@ -788,17 +788,26 @@ files = [
 
 [[package]]
 name = "deep-qber"
-version = "0.0.0"
-description = ""
+version = "0.0.1"
+description = "Microlib for fast experiments with time series data"
 category = "main"
 optional = false
-python-versions = "*"
+python-versions = "<3.10.7,>=3.10.6"
 files = []
 develop = false
 
+[package.dependencies]
+catboost = "*"
+numpy = "*"
+pandas = "*"
+pytorch-lightning = "*"
+scikit-learn = "*"
+torch = "*"
+torchmetrics = "*"
+
 [package.source]
 type = "directory"
-url = "package"
+url = "deep_qber"
 
 [[package]]
 name = "defusedxml"
@@ -4184,4 +4193,4 @@ test = ["mypy", "pre-commit", "pytest", "pytest-asyncio", "websockets (>=10.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "3.10.6"
-content-hash = "77126331a5445497363adf09bfaa0264e09a2bbacfbaa5c97c908c63c2d620ae"
+content-hash = "dc5fe4958206916c431cb6aa53d348a4af281d8d3c60debc5b5102b361fae173"
