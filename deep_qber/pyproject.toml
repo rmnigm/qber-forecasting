@@ -1,0 +1,20 @@
+[project]
+name = "deep-qber"
+version = "0.0.1"
+description = "Microlib for fast experiments with time series data"
+authors = [
+    {name = "Roman Nigmatullin", email = "roman.nigmatullinm@gmail.com"},
+]
+
+readme = "README.md"
+
+requires-python = ">=3.10.6, <3.10.7"
+dependencies = [
+    "torch",
+    "scikit-learn",
+    "pandas",
+    "catboost",
+    "numpy",
+    "pytorch-lightning",
+    "torchmetrics"
+]
