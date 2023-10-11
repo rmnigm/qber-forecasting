@@ -8,12 +8,13 @@ from catboost import Pool
 
 class BaseDataset(ABC):
     """Abstract class for dataset interface"""
-    def __init__(self, dataframe, target_column, window_size, train_size, anomaly_column):
+    def __init__(self, dataframe, target_column, window_size, train_size, anomaly_column, scaler):
         self.dataframe = dataframe
         self.target_column = target_column
         self.window_size = window_size
         self.train_size = train_size
         self.anomaly_column = anomaly_column
+        self.scaler = scaler
         self.anomalies_present = (dataframe[anomaly_column] == 1).sum() > 0
         self.dataset = None
 
@@ -25,7 +26,7 @@ class BaseDataset(ABC):
         return data_train, data_test
 
     @abstractmethod
-    def transform_subset(self, subset):
+    def to_model_input(self, subset):
         ...
 
     @abstractmethod
@@ -47,8 +48,13 @@ class BaseDataset(ABC):
             dataset = []
             for i in trange(start, end):
                 subset = self.dataframe.loc[i - self.window_size:i]
-                x = self.transform_subset(subset.drop(columns=self.anomaly_column))
                 anomaly_label = subset[self.anomaly_column].iloc[-1]
+                subset = subset.drop(columns=self.anomaly_column)
+                subset = pd.DataFrame(data=self.transforms(subset.to_numpy()),
+                                      index=subset.index,
+                                      columns=subset.columns
+                                      )
+                x = self.to_model_input(subset)
                 dataset.append((i, x, anomaly_label))
             self.assemble(dataset)
         else:
@@ -63,8 +69,9 @@ class ClassicModelDataset(BaseDataset):
                  target_column,
                  anomaly_column,
                  window_size=10,
-                 train_size=0.75):
-        super().__init__(dataframe, target_column, window_size, train_size, anomaly_column)
+                 train_size=0.75,
+                 scaler=None):
+        super().__init__(dataframe, target_column, window_size, train_size, anomaly_column, scaler)
 
         self.window_options = [self.window_size // 2, self.window_size]
         if self.window_size >= 20:
@@ -84,7 +91,7 @@ class ClassicModelDataset(BaseDataset):
         self.schema += [f'{self.window_size - 1 - i}_lag_{self.target_column}' for i in range(self.window_size)]
         self.schema += list(cols)
 
-    def transform_subset(self, subset):
+    def to_model_input(self, subset):
         features = []
         for window in self.window_options:
             x = subset.iloc[:window]
@@ -114,7 +121,8 @@ class ClassicModelDataset(BaseDataset):
         return series_features
 
     def transforms(self, subset):
-        pass
+        if self.scaler is not None:
+            return self.scaler.transform(subset)
 
     def load(self):
         self.dataset = pd.read_csv(f'catboost_dataset.csv', index_col='index')
@@ -179,6 +187,7 @@ class TorchDatasetInterface(BaseDataset):
                  batch_size=64,
                  window_size=10,
                  dtype=torch.float32,
+                 scaler=None,
                  ):
         super().__init__(dataframe=dataframe,
                          target_column=target_column,
@@ -191,24 +200,25 @@ class TorchDatasetInterface(BaseDataset):
         self.train = None
         self.test = None
     
-    def transform_subset(self, subset):
+    def to_model_input(self, subset):
         lag, latest = subset.iloc[:-1], subset.iloc[-1]
         y = torch.tensor(
             [latest[self.target_column]],
             dtype=self.dtype
         )
         x_latest = torch.tensor(
-            latest.drop(self.target_column).values,
+            latest.drop(self.target_column).to_numpy(),
             dtype=self.dtype
         )
         x_lag = torch.tensor(
-            lag.values,
+            lag.to_numpy(),
             dtype=self.dtype
         )
         return x_lag, x_latest, y
 
     def transforms(self, subset):
-        pass
+        if self.scaler is not None:
+            return self.scaler.transform(subset)
     
     def assemble(self, dataset):
         self.dataset = dataset

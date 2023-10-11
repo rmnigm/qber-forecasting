@@ -1,6 +1,6 @@
 [project]
 name = "deep-qber"
-version = "0.0.1"
+version = "0.0.2"
 description = "Microlib for fast experiments with time series data"
 authors = [
     {name = "Roman Nigmatullin", email = "roman.nigmatullinm@gmail.com"},

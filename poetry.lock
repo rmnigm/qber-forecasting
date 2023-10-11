@@ -788,13 +788,13 @@ files = [
 
 [[package]]
 name = "deep-qber"
-version = "0.0.1"
+version = "0.0.2"
 description = "Microlib for fast experiments with time series data"
 category = "main"
 optional = false
-python-versions = "<3.10.7,>=3.10.6"
+python-versions = ">=3.10.6"
 files = []
-develop = false
+develop = true
 
 [package.dependencies]
 catboost = "*"
@@ -1374,14 +1374,14 @@ referencing = ">=0.28.0"
 
 [[package]]
 name = "jupyter-client"
-version = "8.3.1"
+version = "8.4.0"
 description = "Jupyter protocol implementation and client libraries"
 category = "main"
 optional = false
 python-versions = ">=3.8"
 files = [
-    {file = "jupyter_client-8.3.1-py3-none-any.whl", hash = "sha256:5eb9f55eb0650e81de6b7e34308d8b92d04fe4ec41cd8193a913979e33d8e1a5"},
-    {file = "jupyter_client-8.3.1.tar.gz", hash = "sha256:60294b2d5b869356c893f57b1a877ea6510d60d45cf4b38057f1672d85699ac9"},
+    {file = "jupyter_client-8.4.0-py3-none-any.whl", hash = "sha256:6a2a950ec23a8f62f9e4c66acec7f0ea6c7d1f80ba0992e747b10c56ce2e6dbe"},
+    {file = "jupyter_client-8.4.0.tar.gz", hash = "sha256:dc1b857d5d7d76ac101766c6e9b646bf18742721126e72e5d484c75a993cada2"},
 ]
 
 [package.dependencies]
@@ -4193,4 +4193,4 @@ test = ["mypy", "pre-commit", "pytest", "pytest-asyncio", "websockets (>=10.0)"]
 [metadata]
 lock-version = "2.0"
 python-versions = "3.10.6"
-content-hash = "dc5fe4958206916c431cb6aa53d348a4af281d8d3c60debc5b5102b361fae173"
+content-hash = "31c4999f4e9bb33882bf890d980fe3d7b467f2b607d5f93c01c75ea9c16b31e3"
