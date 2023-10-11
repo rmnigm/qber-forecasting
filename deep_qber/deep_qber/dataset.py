@@ -7,6 +7,7 @@ from catboost import Pool
 
 
 class BaseDataset(ABC):
+    """Abstract class for dataset interface"""
     def __init__(self, dataframe, target_column, window_size, train_size, anomaly_column):
         self.dataframe = dataframe
         self.target_column = target_column
@@ -24,16 +25,20 @@ class BaseDataset(ABC):
         return data_train, data_test
 
     @abstractmethod
-    def transform(self, subset):
-        pass
+    def transform_subset(self, subset):
+        ...
+
+    @abstractmethod
+    def transforms(self, subset):
+        ...
 
     @abstractmethod
     def assemble(self, dataset):
-        pass
+        ...
 
     @abstractmethod
     def load(self):
-        pass
+        ...
 
     def setup(self, start, end, from_files=False):
         if not from_files:
@@ -42,7 +47,7 @@ class BaseDataset(ABC):
             dataset = []
             for i in trange(start, end):
                 subset = self.dataframe.loc[i - self.window_size:i]
-                x = self.transform(subset.drop(columns=self.anomaly_column))
+                x = self.transform_subset(subset.drop(columns=self.anomaly_column))
                 anomaly_label = subset[self.anomaly_column].iloc[-1]
                 dataset.append((i, x, anomaly_label))
             self.assemble(dataset)
@@ -52,6 +57,7 @@ class BaseDataset(ABC):
 
 
 class ClassicModelDataset(BaseDataset):
+    """Catboost dataset interface with feature extraction for time series"""
     def __init__(self,
                  dataframe,
                  target_column,
@@ -78,7 +84,7 @@ class ClassicModelDataset(BaseDataset):
         self.schema += [f'{self.window_size - 1 - i}_lag_{self.target_column}' for i in range(self.window_size)]
         self.schema += list(cols)
 
-    def transform(self, subset):
+    def transform_subset(self, subset):
         features = []
         for window in self.window_options:
             x = subset.iloc[:window]
@@ -106,6 +112,9 @@ class ClassicModelDataset(BaseDataset):
 
         series_features = pd.concat(features)
         return series_features
+
+    def transforms(self, subset):
+        pass
 
     def load(self):
         self.dataset = pd.read_csv(f'catboost_dataset.csv', index_col='index')
@@ -141,7 +150,9 @@ class ClassicModelDataset(BaseDataset):
 
 
 class TorchDataset(torch.utils.data.Dataset):
+    """Torch.dataset adapter for time series data"""
     def __init__(self, data, device='cpu'):
+        self.device = device
         self.indices, self.X, self.Y = [], [], []
         for point in data:
             i, data = point
@@ -154,10 +165,11 @@ class TorchDataset(torch.utils.data.Dataset):
         return len(self.X)
     
     def __getitem__(self, idx):
-        return tuple(x.to(device) for x in self.X[idx]), self.Y[idx].to(device)
+        return tuple(x.to(self.device) for x in self.X[idx]), self.Y[idx].to(self.device)
 
 
 class TorchDatasetInterface(BaseDataset):
+    """Torch data processing class for time series data """
     def __init__(self,
                  dataframe,
                  target_column,
@@ -179,7 +191,7 @@ class TorchDatasetInterface(BaseDataset):
         self.train = None
         self.test = None
     
-    def transform(self, subset):
+    def transform_subset(self, subset):
         lag, latest = subset.iloc[:-1], subset.iloc[-1]
         y = torch.tensor(
             [latest[self.target_column]],
@@ -194,6 +206,9 @@ class TorchDatasetInterface(BaseDataset):
             dtype=self.dtype
         )
         return x_lag, x_latest, y
+
+    def transforms(self, subset):
+        pass
     
     def assemble(self, dataset):
         self.dataset = dataset
