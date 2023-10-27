@@ -193,7 +193,8 @@ class TorchDatasetInterface(BaseDataset):
                          target_column=target_column,
                          anomaly_column=anomaly_column,
                          window_size=window_size,
-                         train_size=train_size)
+                         train_size=train_size,
+                         scaler=scaler)
         self.dtype = dtype
         self.shuffle = shuffle
         self.batch_size = batch_size
