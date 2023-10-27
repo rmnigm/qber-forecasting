@@ -90,6 +90,58 @@ class ExtractorLSTM(nn.Module):
         return self.regressor(features)
 
 
+class Reshape(nn.Module):
+    def __init__(self, *args):
+        super(Reshape, self).__init__()
+        self.shape = args
+
+    def forward(self, x):
+        return x.view(self.shape)
+
+
+class ConvARNN(nn.Module):
+    def __init__(self, look_back, output_size, hidden_size, input_size):
+        super().__init__() 
+        self.look_back = look_back
+        self.output_size = output_size
+        self.hidden_size = hidden_size
+        self.input_size = input_size
+        self.batch_size = config["batch_size"]
+        self.conv = nn.Sequential(
+            nn.Conv1d(7, 16, 5),
+            nn.Softplus(),
+            nn.BatchNorm1d(16),
+
+            nn.Conv1d(16, 32, 5),
+            nn.Softplus(),
+            nn.BatchNorm1d(32),
+    
+            nn.Conv1d(32, 64, 5),
+            nn.Softplus(),
+            nn.BatchNorm1d(64),
+    
+            nn.Conv1d(64, 64, 3),
+            nn.Softplus(),
+            nn.AdaptiveAvgPool1d(1),
+            Reshape(-1, 64),
+    
+            nn.Linear(64, 1)
+        )
+        self.autoregressive = nn.Sequential(
+            nn.Linear(self.look_back, self.hidden_size),
+            nn.LeakyReLU(),
+            nn.Linear(self.hidden_size, self.hidden_size),
+            nn.LeakyReLU(),
+            nn.Linear(self.hidden_size, 1),
+        )
+        
+    def forward(self, data):
+        x, x_current = data
+        ar_component = self.autoregressive(x[:, :, 0])
+        conv_component = self.conv(x.transpose(1, 2))
+        return ar_component + conv_component
+
+
 class ModelInterfaceTS(nn.Module):
     def __init__(self, model, device):
         super().__init__()
