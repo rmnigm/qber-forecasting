@@ -123,6 +123,7 @@ class ClassicModelDataset(BaseDataset):
     def transforms(self, subset):
         if self.scaler is not None:
             return self.scaler.transform(subset)
+        return subset
 
     def load(self):
         self.dataset = pd.read_csv(f'catboost_dataset.csv', index_col='index')
@@ -220,6 +221,7 @@ class TorchDatasetInterface(BaseDataset):
     def transforms(self, subset):
         if self.scaler is not None:
             return self.scaler.transform(subset)
+        return subset
     
     def assemble(self, dataset):
         self.dataset = dataset
