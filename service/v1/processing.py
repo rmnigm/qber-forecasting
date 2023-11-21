@@ -1,5 +1,6 @@
 import dataclasses
 from collections import deque
+from itertools import chain
 
 import numpy as np
 from catboost import FeaturesData
@@ -34,17 +35,20 @@ class SlidingWindow:
         )
         self.feature_names = self.build_feature_config()
         if feature_config is None:
-            self.feature_config = set().union(*self.feature_names.values())
+            self.feature_config = list(chain(*self.feature_names.values()))
         else:
             self.feature_config = feature_config
 
     def build_feature_config(self):
-        latest_exod = frozenset(['eNu1', 'eNu2', 'qMu', 'qNu1', 'qNu2'])
-        exp_smoothed = frozenset([f'{ts}_ema' for ts in latest_exod])
-        deltas = frozenset([f'{ts}_delta' for ts in latest_exod])
-        means = frozenset([f'{ts}_mean' for ts in latest_exod])
-        stds = frozenset([f'{ts}_std' for ts in latest_exod])
-        target_lags = frozenset([f'eMu_lag_{i}' for i in reversed(range(self.size))])
+        latest_exod = ['eNu1', 'eNu2', 'qMu', 'qNu1', 'qNu2']
+        exp_smoothed = [f'{ts}_ema' for ts in latest_exod]
+        deltas = [f'{ts}_delta' for ts in latest_exod]
+        means = [f'{ts}_mean' for ts in latest_exod]
+        stds = [f'{ts}_std' for ts in latest_exod]
+        target_lags = [f'eMu_lag_{i}' for i in reversed(range(self.size))]
+        lags = []
+        for row in latest_exod:
+            lags.extend([f'{row}_lag_{i}' for i in reversed(range(self.size))])
         return {
             'latest': latest_exod,
             'exp_smoothed': exp_smoothed,
@@ -52,6 +56,7 @@ class SlidingWindow:
             'means': means,
             'stds': stds,
             'target_lags': target_lags,
+            'lags': lags,
         }
         
     def is_full(self) -> bool:
@@ -82,17 +87,21 @@ class SlidingWindow:
         ema_features = (matrix * self.ema_weights).sum(axis=1)
         delta_features = matrix.max(axis=1) - matrix.min(axis=1)
         std_features, mean_features = matrix.std(axis=1), matrix.mean(axis=1)
-        lag_features = matrix[0]
+        target_lag_features = matrix[0]
+        lag_features = []
+        for row in matrix[1:]:
+            lag_features.extend(row)
         features = {k: v for k, v in zip(self.feature_names['deltas'], delta_features)}
         features.update({k: v for k, v in zip(self.feature_names['exp_smoothed'], ema_features)})
         features.update({k: v for k, v in zip(self.feature_names['stds'], std_features)})
         features.update({k: v for k, v in zip(self.feature_names['means'], mean_features)})
         features.update({k: v for k, v in zip(self.feature_names['latest'], latest)})
-        features.update({k: v for k, v in zip(self.feature_names['target_lags'], lag_features)})
-        return features
+        features.update({k: v for k, v in zip(self.feature_names['target_lags'], target_lag_features)})
+        features.update({k: v for k, v in zip(self.feature_names['lags'], lag_features)})
+        return {k: features[k] for k in self.feature_config}
     
     def get_boost_features(self) -> FeaturesData:
-        features = {k: v for k, v in self.get_features().items() if k in self.feature_config}
+        features = self.get_features()
         num_feature = np.array(list(features.values()), dtype=np.float32)[None, :]
         num_feature_names = list(features.keys())
         features_data = FeaturesData(
