@@ -2,7 +2,7 @@ from time import sleep
 
 from thrift.transport.TSocket import TSocket
 
-from generated.chan_estimator_api import ChanEstimatorService
+from ..v1.generated.chan_estimator_api import ChanEstimatorService
 from thrift.transport.TTransport import TBufferedTransport, TTransportException
 from thrift.protocol import TBinaryProtocol
 
