@@ -1,11 +1,11 @@
-import json
 import polars as pl
 import numpy as np
-from tqdm import tqdm, trange
+from tqdm import tqdm
 from processing import SlidingWindow
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
-from catboost import CatBoostRegressor, FeaturesData, Pool
+from catboost import CatBoostRegressor, FeaturesData, Pool, EFeaturesSelectionAlgorithm, EShapCalcType
+import json
 
 
 def get_data(feature_config: list | None = None):
@@ -38,12 +38,30 @@ def get_data(feature_config: list | None = None):
     return train_pool, test_pool, train_y, test_y
 
 
-with open('config.json', 'r') as f:
-    features_config = json.load(f)
+train_pool, test_pool, train_y, test_y = get_data()
 
-train_pool, test_pool, train_y, test_y = get_data(features_config)
+print(f'Features count: {test_pool.num_col()}')
+model = CatBoostRegressor()
+summary = model.select_features(
+    train_pool,
+    eval_set=test_pool,
+    features_for_select=f'0-{test_pool.num_col()-1}',
+    num_features_to_select=60,
+    steps=5,
+    algorithm=EFeaturesSelectionAlgorithm.RecursiveByShapValues,
+    shap_calc_type=EShapCalcType.Regular,
+    train_final_model=True,
+    plot=True
+)
+selected_features_names = summary['selected_features_names']
+with open('config.json', 'w') as f:
+    json.dump(selected_features_names, f)
+
+train_pool, test_pool, train_y, test_y = get_data(selected_features_names)
 
 model = CatBoostRegressor()
-model.load_model('best_unscaled.cbm')
+model.fit(train_pool, eval_set=test_pool)
+model.save_model('best_unscaled.cbm')
+
 test_predictions = model.predict(test_pool)
 print(f'R2 score = {r2_score(test_y, test_predictions)}')
