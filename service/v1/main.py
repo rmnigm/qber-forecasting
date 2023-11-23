@@ -17,8 +17,11 @@ from generated.chan_estimator_api import ChanEstimatorService
 
 class ChanEstimatorHandler:
     def __init__(self, model_path: str, config_path: str | None):
+        print('Creating Estimator object...')
         self.estimator = Estimator(20, feature_config_path=config_path)
+        print('Loading model...')
         self.estimator.load_model(model_path=model_path)
+        print('Model loaded.')
 
     def retrieveEst(self, eMu, eMuEma, eNu1, eNu2, qMu, qNu1, qNu2, maintenance):
         self.estimator.update(eMu, eMuEma, eNu1, eNu2, qMu, qNu1, qNu2)
