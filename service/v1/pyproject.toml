@@ -1,0 +1,18 @@
+[tool.poetry]
+name = "qber-forecast"
+version = "0.0.1"
+description = "thrift application for qber forecasting"
+authors = ["Your Name <you@example.com>"]
+readme = "README.md"
+packages = [{include = "qber_forecast"}]
+
+[tool.poetry.dependencies]
+python = "3.10.6"
+catboost = "^1.2.2"
+numpy = "^1.26.2"
+thrift = "0.15.0"
+
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"

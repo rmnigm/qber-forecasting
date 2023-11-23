@@ -1,19 +1,23 @@
 #!/usr/bin/python3
 
+import argparse
+from threading import Thread
+
+
 from thrift.protocol import TBinaryProtocol
 from thrift.transport import TTransport
 from thrift.transport.TSocket import TServerSocket, TSocket
 from thrift.transport.TTransport import TBufferedTransport, TTransportException
 from thrift.server import TServer
-from threading import Thread
-import argparse
-from generated.chan_estimator_api import ChanEstimatorService
+
+
 from estimator import Estimator
+from generated.chan_estimator_api import ChanEstimatorService
 
 
 class ChanEstimatorHandler:
     def __init__(self, model_path: str, config_path: str | None):
-        self.estimator = Estimator(20)
+        self.estimator = Estimator(20, feature_config_path=config_path)
         self.estimator.load_model(model_path=model_path)
 
     def retrieveEst(self, eMu, eMuEma, eNu1, eNu2, qMu, qNu1, qNu2, maintenance):
