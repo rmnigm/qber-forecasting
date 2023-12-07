@@ -44,6 +44,6 @@ with open('config.json', 'r') as f:
 train_pool, test_pool, train_y, test_y = get_data(features_config)
 
 model = CatBoostRegressor()
-model.load_model('best_unscaled.cbm')
+model.load_model('best.cbm')
 test_predictions = model.predict(test_pool)
 print(f'R2 score = {r2_score(test_y, test_predictions)}')

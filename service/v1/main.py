@@ -33,18 +33,17 @@ def main():
     parser.add_argument("--sock",
                         required=True,
                         help='chan_estimator UNIX-domain socket path')
-    parser.add_argument("--modelpath",
+    parser.add_argument("--model",
                         required=True,
                         help='cbm model filepath')
-    parser.add_argument("--configpath",
+    parser.add_argument("--config",
                         required=False,
                         help='feature config json for model filepath')
 
     args = parser.parse_args()
-    handler = ChanEstimatorHandler(args.modelpath, args.configpath)
+    handler = ChanEstimatorHandler(args.model, args.config)
     processor = ChanEstimatorService.Processor(handler)
-    # transport = TServerSocket(unix_socket=args.sock)
-    transport = TServerSocket('localhost', 9090)
+    transport = TServerSocket(unix_socket=args.sock)
     tfactory = TTransport.TBufferedTransportFactory()
     pfactory = TBinaryProtocol.TBinaryProtocolFactory()
     server = TServer.TSimpleServer(processor, transport, tfactory, pfactory)
