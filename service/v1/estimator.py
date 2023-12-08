@@ -4,11 +4,11 @@ from collections import deque
 from itertools import chain
 
 import numpy as np
-from catboost import CatBoostRegressor, FeaturesData
+from catboost import CatBoostRegressor, FeaturesData  # type: ignore
 
 
 record_tuple = tuple[float | None, ...]
-record_list = list[record_tuple] | None
+record_list = list[record_tuple]
 
 
 @dataclasses.dataclass
@@ -104,18 +104,15 @@ class SlidingWindow:
             self.data.append(self.latest)
             self.latest = record
     
-    def to_tuple_list(self) -> tuple[record_list, record_tuple]:
+    def to_tuple_list(self) -> tuple[list, tuple]:
         """
         Transforms stored data from SlidingWindow, returns tuple of two objects:
         - tuple of latest time series point, every statistic except eMu
         - list of tuples of all stored time points, every value filled
-        :return: tuple[tuple[float | None, ...], list[tuple[float | None, ...]] | None]
+        :return: tuple[tuple[float | None, ...], list[tuple[float | None, ...]]]
         """
-        latest, data = None, None
-        if self.latest is not None:
-            latest = dataclasses.astuple(self.latest)[2:]
-            if self.is_full():
-                data = [dataclasses.astuple(elem)[1:] for elem in self.data]
+        latest: record_tuple = dataclasses.astuple(self.latest)[2:]
+        data: record_list = [dataclasses.astuple(elem)[1:] for elem in self.data]
         return data, latest
     
     def get_features(self) -> dict[str, np.float32]:
@@ -164,6 +161,7 @@ class SlidingWindow:
         """
         if self.latest is not None:
             return self.latest.eMuEma
+        return None
 
 
 class Estimator:
