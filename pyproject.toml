@@ -23,10 +23,12 @@ jupyterlab = "^3.6.2"
 wandb = "^0.14.2"
 pytorch-lightning = "^2.0.1.post0"
 torchmetrics = "^0.11.4"
-deep-qber = {path = "deep_qber", develop = true}
+deep-qber = {path = "research/deep_qber", develop = true}
 ipywidgets = "^8.1.1"
 thrift = "^0.16.0"
 polars = "^0.19.13"
+mypy = "^1.7.1"
+flake8 = "^6.1.0"
 
 [build-system]
 requires = ["poetry-core"]
