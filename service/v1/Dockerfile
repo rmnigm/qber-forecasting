@@ -1,12 +1,12 @@
-FROM python:3.10
+FROM python:3.10-slim
 
 WORKDIR /app
 
-RUN pip install --upgrade pip
+RUN pip install --no-cache-dir --upgrade pip
 
 COPY . .
 
-RUN pip install -r requirements.txt
+RUN pip install --no-cache-dir -r requirements.txt
 
 EXPOSE 8080/tcp
 

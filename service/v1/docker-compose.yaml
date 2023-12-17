@@ -1,6 +1,9 @@
+version: "1"
+
 services:
   web:
     build: .
     ports: 
     - "8000:8080"
     container_name: estimator
+    image: estimator:latest
