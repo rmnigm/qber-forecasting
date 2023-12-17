@@ -6,8 +6,7 @@ from threading import Thread
 
 from thrift.protocol import TBinaryProtocol
 from thrift.transport import TTransport
-from thrift.transport.TSocket import TServerSocket, TSocket
-from thrift.transport.TTransport import TBufferedTransport, TTransportException
+from thrift.transport.TSocket import TServerSocket
 from thrift.server import TServer
 
 
@@ -30,20 +29,18 @@ class ChanEstimatorHandler:
 
 def main():
     parser = argparse.ArgumentParser(description='ML-based channel estimator')
-    parser.add_argument("--sock",
-                        required=True,
-                        help='chan_estimator UNIX-domain socket path')
     parser.add_argument("--model",
-                        required=True,
+                        required=False,
                         help='cbm model filepath')
     parser.add_argument("--config",
                         required=False,
                         help='feature config json for model filepath')
-
+    parser.set_defaults(model='model.cbm', config='config.json')
+    
     args = parser.parse_args()
     handler = ChanEstimatorHandler(args.model, args.config)
     processor = ChanEstimatorService.Processor(handler)
-    transport = TServerSocket(unix_socket=args.sock)
+    transport = TServerSocket('0.0.0.0', 8080)
     tfactory = TTransport.TBufferedTransportFactory()
     pfactory = TBinaryProtocol.TBinaryProtocolFactory()
     server = TServer.TSimpleServer(processor, transport, tfactory, pfactory)
