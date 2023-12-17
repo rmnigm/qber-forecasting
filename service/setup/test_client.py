@@ -32,15 +32,12 @@ def open_thrift_transport(thrift_transport):
 
 def main():
     parser = argparse.ArgumentParser(description='ML-based estimator test client')
-    parser.add_argument("--sock",
-                        required=True,
-                        help='chan_estimator UNIX-domain socket path')
     parser.add_argument("--data",
                         required=True,
                         help='chan_estimator test dataset')
     args = parser.parse_args()
     
-    transp = TBufferedTransport(TSocket(unix_socket=args.sock))
+    transp = TBufferedTransport(TSocket('51.250.99.107', 8000))
     open_thrift_transport(transp)
     client = ChanEstimatorService.Client(TBinaryProtocol.TBinaryProtocol(transp))
     
