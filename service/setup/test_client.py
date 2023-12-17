@@ -37,7 +37,7 @@ def main():
                         help='chan_estimator test dataset')
     args = parser.parse_args()
     
-    transp = TBufferedTransport(TSocket('51.250.99.107', 8000))
+    transp = TBufferedTransport(TSocket('0.0.0.0', 8000))
     open_thrift_transport(transp)
     client = ChanEstimatorService.Client(TBinaryProtocol.TBinaryProtocol(transp))
     
