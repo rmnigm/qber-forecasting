@@ -1,7 +1,9 @@
 catboost==1.2.2
 flake8==6.1.0
+functime==0.9.4
 jupyter==1.0.0
 jupyterlab==3.6.6
+lightgbm==4.2.0
 matplotlib==3.8.2
 mypy==1.7.1
 numba==0.56.4
