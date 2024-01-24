@@ -35,3 +35,31 @@ QBER for these states is known ahead of time and can be used in forecasting.
 ### Shorter than ever
 We have a time series of seven variables and we need to forecast target TS value using previous data of target TS, current values of additional TS and previous values of the other TS.
 
+## Installation
+- Install Pyenv ([guide](https://github.com/pyenv/pyenv#installation))
+- Install Python, used in project
+  ```bash
+  $ pyenv install 3.10.6
+  ```
+- Create virtual environment for Python and activate (will be active until you clode the terminal session or use `deactivate`):
+  ```bash
+  $ cd <path to cloned repo>
+  $ ~/.pyenv/versions/3.10.6/bin/python -m venv qber_env
+  $ source pycp_env/bin/activate
+  ```  
+  In terminal you will now have a prefix:
+  ```bash
+  (qber_env)$ ...
+  ```
+- Check that `python` and `pip` lead to `pycp_env`
+    ```bash
+    (qber_env)$ which python
+    <path to repo>/qber_env/bin/python
+    (qber_env)$ which pip
+    <path to repo>/qber_env/bin/pip
+    ```
+- Install dependencies using requirements.txt
+  ```bash
+  (pycp_env)$ pip install --upgrade -r requirements.txt
+  ```
+
