@@ -45,7 +45,7 @@ We have a time series of seven variables and we need to forecast target TS value
   ```bash
   $ cd <path to cloned repo>
   $ ~/.pyenv/versions/3.10.6/bin/python -m venv qber_env
-  $ source pycp_env/bin/activate
+  $ source qber_env/bin/activate
   ```  
   In terminal you will now have a prefix:
   ```bash
