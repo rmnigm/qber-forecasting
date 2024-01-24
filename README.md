@@ -38,10 +38,12 @@ We have a time series of seven variables and we need to forecast target TS value
 ## Installation
 - Install Pyenv ([guide](https://github.com/pyenv/pyenv#installation))
 - Install Python, used in project
+
   ```bash
   $ pyenv install 3.10.6
   ```
 - Create virtual environment for Python and activate (will be active until you clode the terminal session or use `deactivate`):
+
   ```bash
   $ cd <path to cloned repo>
   $ ~/.pyenv/versions/3.10.6/bin/python -m venv qber_env
@@ -51,7 +53,8 @@ We have a time series of seven variables and we need to forecast target TS value
   ```bash
   (qber_env)$ ...
   ```
-- Check that `python` and `pip` lead to `pycp_env`
+- Check that `python` and `pip` lead to `qber_env`
+
     ```bash
     (qber_env)$ which python
     <path to repo>/qber_env/bin/python
@@ -59,7 +62,8 @@ We have a time series of seven variables and we need to forecast target TS value
     <path to repo>/qber_env/bin/pip
     ```
 - Install dependencies using requirements.txt
+
   ```bash
-  (pycp_env)$ pip install --upgrade -r requirements.txt
+  (qber_env)$ pip install --upgrade -r requirements.txt
   ```
 
