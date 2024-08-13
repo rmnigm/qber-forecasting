@@ -1,6 +1,8 @@
 # QBER Forecasting
 This is a repository for ML models for quantum bit error rate (QBER) prediction.
-Right now it's only research, but on real experimental data.
+Here - only research code and modules, but on real experimental data.
+
+I also have a [repo](https://github.com/rmnigm/qber-forecast) with Apache Thrift pprototype microservices for inference.
 
 ## Theory and problem definition
 
