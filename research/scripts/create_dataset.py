@@ -41,7 +41,7 @@ end = len(dataframe)
 
 scaler = RobustScaler()
 
-train, _ = train_test_split(dataframe.drop(columns=anomaly_column).to_numpy(), train_size=train_size)
+train, _ = train_test_split(dataframe.drop(columns=anomaly_column).to_numpy(), train_size=train_size, shuffle=False)
 scaler.fit(train)
 
 scaled_dataset = ClassicModelDataset(dataframe=dataframe,

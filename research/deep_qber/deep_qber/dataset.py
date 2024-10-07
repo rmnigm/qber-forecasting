@@ -94,7 +94,7 @@ class ClassicModelDataset(BaseDataset):
     def to_model_input(self, subset):
         features = []
         for window in self.window_options:
-            x = subset.iloc[:window]
+            x = subset.iloc[-window - 1:-1]
 
             means = x.mean()
             means.index = [col + f'_w{window}_mean' for col in means.index]

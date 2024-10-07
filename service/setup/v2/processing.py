@@ -84,9 +84,10 @@ class SlidingWindow:
     def get_features(self) -> dict[str, np.float32]:
         data, latest = self.to_tuple_list()
         matrix = np.array(data, dtype=np.float32).T
-        ema_features = (matrix * self.ema_weights).sum(axis=1)
-        delta_features = matrix.max(axis=1) - matrix.min(axis=1)
-        std_features, mean_features = matrix.std(axis=1), matrix.mean(axis=1)
+        exod_matrix = matrix[1:]
+        ema_features = (exod_matrix * self.ema_weights).sum(axis=1)
+        delta_features = exod_matrix.max(axis=1) - exod_matrix.min(axis=1)
+        std_features, mean_features = exod_matrix.std(axis=1), exod_matrix.mean(axis=1)
         target_lag_features = matrix[0]
         lag_features = []
         for row in matrix[1:]:

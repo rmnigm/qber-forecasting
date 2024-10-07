@@ -20,14 +20,14 @@ def seed_everything(seed: int) -> None:
 
 class OutlierDetector:
     def __init__(self, mode='median', window_size=10, alpha=3):
-        self.mode = 'median'
+        self.mode = mode
         self.window_size = window_size
         self.alpha = alpha
 
     def fit(self, ts):
         anomalies = []
         window = deque(ts[:self.window_size])
-        for i in tqdm(range(len(ts[self.window_size:]))):
+        for i in tqdm(range(self.window_size, len(ts))):
             item = ts[i]
             med = statistics.median(window)
             std = statistics.stdev(window)

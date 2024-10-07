@@ -106,7 +106,6 @@ class ConvARNN(nn.Module):
         self.output_size = output_size
         self.hidden_size = hidden_size
         self.input_size = input_size
-        self.batch_size = config["batch_size"]
         self.conv = nn.Sequential(
             nn.Conv1d(7, 16, 5),
             nn.Softplus(),
